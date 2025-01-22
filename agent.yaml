@@ -1,0 +1,127 @@
+openagent-schema: "1.0.0"
+info:
+  title: "Example LLM Agent"
+  description: |
+    Example agent is built for the purpose A, B, and C.
+    It is capable of doing task X, Y, and Z.
+  version: "1.0.0"
+  contact:
+    name: "Your Name"
+    email: "your.email@example.com"
+  documents:
+    - "https://docs.yourdomain.com/agent/example"
+servers:
+  - url: "https://api.yourdomain.com/agent/example"
+tools:
+  /application-metrics:
+    post:
+      summary: "Retrieve metrics for specified applications"
+      description: "Fetch metrics based on flurry descriptions for a list of applications."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                applications:
+                  type: array
+                  items:
+                    type: string
+                  description: "List of applications for which metrics are being requested."
+                  required: false
+                  example: ["App1", "App2"]
+                metrics:
+                  type: array
+                  items:
+                    type: string
+                  description: "List of descriptions of the metrics requested."
+                  required: true
+                  example:
+                    [
+                      "HTTP requests counter",
+                      "average response time for successful requests",
+                    ]
+      responses:
+        "200":
+          description: |
+            Successful retrieval of specified metrics for each application.
+            Representation is a dictionary where keys are application names and values are dictionaries of metric names and values.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  additionalProperties:
+                    type: number
+                    description: "Metric value for the requested metric name."
+                  example:
+                    total_requests: 1500
+                    average_response_time_milliseconds{status_code="200"}: 200.5
+          example:
+            App1:
+              total_requests: 1500
+              average_response_time_milliseconds{status_code="200"}: 200.5
+            App2:
+              total_requests: 1200
+              average_response_time_milliseconds{status_code="200"}: 180.3
+        "400":
+          description: "Invalid input data provided"
+        "500":
+          description: "Internal server error when retrieving metrics"
+  /interact:
+    post:
+      summary: "Interact with the LLM agent"
+      description: "Send a query to the LLM agent and receive a response."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description: "Unique identifier for the user initiating the request."
+                  required: true
+                input_text:
+                  type: string
+                  description: "The prompt or question to send to the agent."
+                  required: true
+                session_id:
+                  type: string
+                  required: true
+      responses:
+        "200":
+          description: "Successful response"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response_text:
+                    type: string
+                    description: "The response from the LLM agent."
+                  session_id:
+                    type: string
+                    description: "Identifier for the interactive session."
+        "400":
+          description: "Invalid input parameters"
+        "500":
+          description: "Internal server error"
+
+properties:
+  model:
+    provider: "OpenAI"
+    model: "GPT-4o-mini"
+  context_window_size: 1000
+  memory:
+    activated: true
+    thread_key: "thread_id"
+  agent_chain_call: true
+  safety_filters:
+    - "ip address"
+    - "personal information"
+  emmbedder:
+    - "word2vec"
+    - "BAAI/bge-small-en-v1.5"
