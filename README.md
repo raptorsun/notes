@@ -1,0 +1,1 @@
+This repository assembles notes taken during work and study.
